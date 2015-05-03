@@ -31,7 +31,7 @@ Spring framework can't be used to implement this solution.
 
 Finally, to execute the applications, you can run them using an IDE, or using maven:
 
-Server: mvn compile exec:java -Dexec.mainClass="com.raulavila.spellchecker.server.SpellCheckerServer"
-Client: mvn compile exec:java -Dexec.mainClass="com.raulavila.spchclient.client.SpellCheckerClient
+Server: `mvn compile exec:java -Dexec.mainClass="com.raulavila.spellchecker.server.SpellCheckerServer"`
+Client: `mvn compile exec:java -Dexec.mainClass="com.raulavila.spchclient.client.SpellCheckerClient"`
 
 Note that httpclient project must be installed in the local repository previous to the execution of the projects.
