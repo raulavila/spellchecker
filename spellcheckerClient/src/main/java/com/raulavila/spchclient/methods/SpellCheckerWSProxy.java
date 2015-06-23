@@ -6,59 +6,59 @@ import com.raulavila.spchclient.exceptions.ServerErrorException;
 
 public class SpellCheckerWSProxy implements SpellCheckerProxy {
 
-	private static final String SPELL_CHECKER_URL_BASE = "http://localhost:4567";
-	private static final String CHECK_SERVICE = "check";
-	private static final String ADD_SERVICE = "add";
+    private static final String SPELL_CHECKER_URL_BASE = "http://localhost:4567";
+    private static final String CHECK_SERVICE = "check";
+    private static final String ADD_SERVICE = "add";
 
-	private static final String EXCEPTION_SERVER_ERROR = "There has been an error in the server";
+    private static final String EXCEPTION_SERVER_ERROR = "There has been an error in the server";
 
-	private final HttpClient httpClient = HttpClient.getInstance();
+    private final HttpClient httpClient = HttpClient.getInstance();
 
-	@Override
-	public boolean check(String language, String word) {
-		String url = buildUrl(CHECK_SERVICE, language, word);
+    @Override
+    public boolean check(String language, String word) {
+        String url = buildUrl(CHECK_SERVICE, language, word);
 
-		HttpClient.Response response = httpClient.getRequest(url);
+        HttpClient.Response response = httpClient.getRequest(url);
 
-		int status = response.getResponseStatus();
+        int status = response.getResponseStatus();
 
-		if (status != HttpConstants.HTTP_STATUS_OK && status != HttpConstants.HTTP_STATUS_NOT_FOUND)
-			throw new ServerErrorException(EXCEPTION_SERVER_ERROR);
+        if (status != HttpConstants.HTTP_STATUS_OK && status != HttpConstants.HTTP_STATUS_NOT_FOUND)
+            throw new ServerErrorException(EXCEPTION_SERVER_ERROR);
 
-		return status == HttpConstants.HTTP_STATUS_OK;
-	}
+        return status == HttpConstants.HTTP_STATUS_OK;
+    }
 
-	@Override
-	public boolean add(String language, String word) {
-		String url = buildUrl(ADD_SERVICE, language, word);
-		
-		HttpClient.Response response = httpClient.postRequest(url);
+    @Override
+    public boolean add(String language, String word) {
+        String url = buildUrl(ADD_SERVICE, language, word);
 
-		int status = response.getResponseStatus();
+        HttpClient.Response response = httpClient.postRequest(url);
 
-		if(status != HttpConstants.HTTP_STATUS_OK && status != HttpConstants.HTTP_STATUS_CONFLICT)
-			throw new ServerErrorException(EXCEPTION_SERVER_ERROR);
+        int status = response.getResponseStatus();
 
-		//There hasn't been any error in the call (we don't mind if the word was previously added or not)
-		return status == HttpConstants.HTTP_STATUS_OK;
+        if (status != HttpConstants.HTTP_STATUS_OK && status != HttpConstants.HTTP_STATUS_CONFLICT)
+            throw new ServerErrorException(EXCEPTION_SERVER_ERROR);
 
-	}
+        //There hasn't been any error in the call (we don't mind if the word was previously added or not)
+        return status == HttpConstants.HTTP_STATUS_OK;
 
-	private String buildUrl(String service, String language, String word) {
-		StringBuilder url = new StringBuilder();
+    }
 
-		url.append(SPELL_CHECKER_URL_BASE);
-		url.append("/");
+    private String buildUrl(String service, String language, String word) {
+        StringBuilder url = new StringBuilder();
 
-		url.append(service);
-		url.append("/");
+        url.append(SPELL_CHECKER_URL_BASE);
+        url.append("/");
 
-		url.append(language);
-		url.append("/");
+        url.append(service);
+        url.append("/");
 
-		url.append(word);
+        url.append(language);
+        url.append("/");
 
-		return url.toString();
-	}
+        url.append(word);
+
+        return url.toString();
+    }
 
 }

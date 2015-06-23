@@ -2,6 +2,8 @@
 
 Spell checker service composed by server and client.
 
+(This project was developed in 2014, it won't work if the WordReference API changes)
+
 ##Requirements
 
 The server exposes two simple methods:

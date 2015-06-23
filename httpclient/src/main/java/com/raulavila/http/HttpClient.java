@@ -16,198 +16,192 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * HttpClient, JSON oriented 
- * 
+ * HttpClient, JSON oriented
+ *
  * @author Raul Avila
  */
 public class HttpClient {
 
-	private static final int MAX_CONNECTIONS = 100;
+    private static final int MAX_CONNECTIONS = 100;
 
-	public static final String EXCEPTION_PROTOCOL_ERROR = "Unexpected error trying to get URL %s";
-	public static final String EXCEPTION_FAILED_REQUEST = "Failed request : HTTP error code : %d";
-	
-	public static final HttpClient INSTANCE = new HttpClient();
-	
-	private final CloseableHttpClient httpClient;
+    public static final String EXCEPTION_PROTOCOL_ERROR = "Unexpected error trying to get URL %s";
+    public static final String EXCEPTION_FAILED_REQUEST = "Failed request : HTTP error code : %d";
 
-	public static HttpClient getInstance() {
-		return INSTANCE;
-	}
+    public static final HttpClient INSTANCE = new HttpClient();
 
-	private HttpClient() {
-		PoolingHttpClientConnectionManager connectionManager
-							= new PoolingHttpClientConnectionManager();
+    private final CloseableHttpClient httpClient;
+
+    public static HttpClient getInstance() {
+        return INSTANCE;
+    }
+
+    private HttpClient() {
+        PoolingHttpClientConnectionManager connectionManager
+                = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(MAX_CONNECTIONS);
 
         httpClient = HttpClients
-							.custom()
-							.setConnectionManager(connectionManager)
-							.build();
-	}
+                .custom()
+                .setConnectionManager(connectionManager)
+                .build();
+    }
 
-	/**
-	 * Returns the json resource mapped by url. This method expects the status response to be 200 (OK)
-	 * 
- 	 * @param url url to get json object
-	 * @return json object
-	 * @throws HttpClientException If the response code is not OK (200), or there has been any error
-	 */
-	public String getJson(String url) {
-		CloseableHttpResponse httpResponse = null;
-		
-		try {
-			HttpContext context = HttpClientContext.create();
-			HttpGet getRequest = new HttpGet(url);
+    /**
+     * Returns the json resource mapped by url. This method expects the status response to be 200 (OK)
+     *
+     * @param url url to get json object
+     * @return json object
+     * @throws HttpClientException If the response code is not OK (200), or there has been any error
+     */
+    public String getJson(String url) {
+        CloseableHttpResponse httpResponse = null;
 
-			httpResponse = httpClient.execute(getRequest, context);
-			validateHttpResponse(httpResponse);
+        try {
+            HttpContext context = HttpClientContext.create();
+            HttpGet getRequest = new HttpGet(url);
 
-			return buildJsonResponse(httpResponse);
-		}
-		catch (Exception e) {
-			throw new HttpClientException(String.format(EXCEPTION_PROTOCOL_ERROR, url), e);
-		} 
-		finally {
-			closeHttpResponse(httpResponse);
-		}
-	}
+            httpResponse = httpClient.execute(getRequest, context);
+            validateHttpResponse(httpResponse);
 
-	private void validateHttpResponse(CloseableHttpResponse httpResponse) {
-		if (httpResponse.getStatusLine().getStatusCode() != HttpConstants.HTTP_STATUS_OK) {
-            throw new HttpClientException(String.format(EXCEPTION_FAILED_REQUEST,
-                                        httpResponse.getStatusLine().getStatusCode()));
+            return buildJsonResponse(httpResponse);
+        } catch (Exception e) {
+            throw new HttpClientException(String.format(EXCEPTION_PROTOCOL_ERROR, url), e);
+        } finally {
+            closeHttpResponse(httpResponse);
         }
-	}
+    }
 
-	private String buildJsonResponse(CloseableHttpResponse httpResponse) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader((httpResponse.getEntity().getContent())));
+    private void validateHttpResponse(CloseableHttpResponse httpResponse) {
+        if (httpResponse.getStatusLine().getStatusCode() != HttpConstants.HTTP_STATUS_OK) {
+            throw new HttpClientException(String.format(EXCEPTION_FAILED_REQUEST,
+                    httpResponse.getStatusLine().getStatusCode()));
+        }
+    }
 
-		StringBuilder output = new StringBuilder();
+    private String buildJsonResponse(CloseableHttpResponse httpResponse) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader((httpResponse.getEntity().getContent())));
 
-		String line;
-		while ((line = br.readLine()) != null)
-			output.append(line);
+        StringBuilder output = new StringBuilder();
 
-		return output.toString();
-	}
+        String line;
+        while ((line = br.readLine()) != null)
+            output.append(line);
 
-	/**
-	 * Sends a post request to the specified url
-	 *
-	 * @param url
-	 * @return HttpClient.Response object, containing response status, and response body, if any
-	 * @throws HttpClientException If there has been any error
-	 */
-	public Response postRequest(String url) {
-		CloseableHttpResponse httpResponse = null;
+        return output.toString();
+    }
 
-		try {
-			HttpContext context = HttpClientContext.create();
+    /**
+     * Sends a post request to the specified url
+     *
+     * @param url
+     * @return HttpClient.Response object, containing response status, and response body, if any
+     * @throws HttpClientException If there has been any error
+     */
+    public Response postRequest(String url) {
+        CloseableHttpResponse httpResponse = null;
 
-			HttpPost postRequest = new HttpPost(url);
-			postRequest.addHeader(HttpConstants.ACCEPT_HEADER_KEY, HttpConstants.ACCEPT_HEADER_JSON);
+        try {
+            HttpContext context = HttpClientContext.create();
 
-			httpResponse = httpClient.execute(postRequest, context);
+            HttpPost postRequest = new HttpPost(url);
+            postRequest.addHeader(HttpConstants.ACCEPT_HEADER_KEY, HttpConstants.ACCEPT_HEADER_JSON);
 
-			return buildResponse(httpResponse);
+            httpResponse = httpClient.execute(postRequest, context);
 
-		}
-		catch (Exception e) {
-			throw new HttpClientException(String.format(EXCEPTION_PROTOCOL_ERROR, url), e);
-		}
-		finally {
-			closeHttpResponse(httpResponse);
-		}
+            return buildResponse(httpResponse);
 
-	}
+        } catch (Exception e) {
+            throw new HttpClientException(String.format(EXCEPTION_PROTOCOL_ERROR, url), e);
+        } finally {
+            closeHttpResponse(httpResponse);
+        }
 
-	/**
-	 * Sends a get request to the specified url
-	 *
-	 * @param url
-	 * @return HttpClient.Response object, containing response status, and response body, if any
-	 * @throws HttpClientException If there has been any error
-	 */
-	public Response getRequest(String url) {
+    }
 
-		CloseableHttpResponse httpResponse = null;
+    /**
+     * Sends a get request to the specified url
+     *
+     * @param url
+     * @return HttpClient.Response object, containing response status, and response body, if any
+     * @throws HttpClientException If there has been any error
+     */
+    public Response getRequest(String url) {
 
-		try {
-			HttpContext context = HttpClientContext.create();
+        CloseableHttpResponse httpResponse = null;
 
-			HttpGet getRequest = new HttpGet(url);
-			getRequest.addHeader(HttpConstants.ACCEPT_HEADER_KEY, HttpConstants.ACCEPT_HEADER_JSON);
+        try {
+            HttpContext context = HttpClientContext.create();
 
-			httpResponse = httpClient.execute(getRequest, context);
+            HttpGet getRequest = new HttpGet(url);
+            getRequest.addHeader(HttpConstants.ACCEPT_HEADER_KEY, HttpConstants.ACCEPT_HEADER_JSON);
 
-			return buildResponse(httpResponse);
+            httpResponse = httpClient.execute(getRequest, context);
 
-		}
-		catch (Exception e) {
-			throw new HttpClientException(String.format(EXCEPTION_PROTOCOL_ERROR, url), e);
-		}
-		finally {
-			closeHttpResponse(httpResponse);
-		}
+            return buildResponse(httpResponse);
 
-	}
+        } catch (Exception e) {
+            throw new HttpClientException(String.format(EXCEPTION_PROTOCOL_ERROR, url), e);
+        } finally {
+            closeHttpResponse(httpResponse);
+        }
 
-	private Response buildResponse(CloseableHttpResponse httpResponse) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader((httpResponse.getEntity().getContent())));
+    }
 
-		StringBuilder output = new StringBuilder();
+    private Response buildResponse(CloseableHttpResponse httpResponse) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader((httpResponse.getEntity().getContent())));
 
-		String line;
-		while ((line = br.readLine()) != null)
-			output.append(line);
+        StringBuilder output = new StringBuilder();
 
-
-		return new Response(httpResponse.getStatusLine().getStatusCode(), output.toString());
-	}
-
-
-	private void closeHttpResponse(CloseableHttpResponse httpResponse) {
-		try {
-			if(httpResponse != null)
-				httpResponse.close();
-		}
-		catch(Exception e) {
-			System.out.println("Error closing httpResponse");
-		}
-	}
-
-	protected void finalize() throws Throwable {
-	     try {
-	    	 httpClient.close();
-	     } finally {
-	         super.finalize();
-	     }
-	}
+        String line;
+        while ((line = br.readLine()) != null)
+            output.append(line);
 
 
-	public static class Response {
-		private final int responseStatus;
-		private final String responseBody;
+        return new Response(httpResponse.getStatusLine().getStatusCode(), output.toString());
+    }
 
-		public Response(int responseStatus, String responseBody) {
-			this.responseStatus = responseStatus;
-			this.responseBody = responseBody;
-		}
-		
-		public int getResponseStatus() {
-			return responseStatus;
-		}
-		public String getResponseBody() {
-			return responseBody;
-		}
-		
-		@Override
-		public String toString() {
-			return "Response [responseStatus=" + responseStatus
-					+ ", responseBody=" + responseBody + "]";
-		}
 
-	}
+    private void closeHttpResponse(CloseableHttpResponse httpResponse) {
+        try {
+            if (httpResponse != null)
+                httpResponse.close();
+        } catch (Exception e) {
+            System.out.println("Error closing httpResponse");
+        }
+    }
+
+    protected void finalize() throws Throwable {
+        try {
+            httpClient.close();
+        } finally {
+            super.finalize();
+        }
+    }
+
+
+    public static class Response {
+        private final int responseStatus;
+        private final String responseBody;
+
+        public Response(int responseStatus, String responseBody) {
+            this.responseStatus = responseStatus;
+            this.responseBody = responseBody;
+        }
+
+        public int getResponseStatus() {
+            return responseStatus;
+        }
+
+        public String getResponseBody() {
+            return responseBody;
+        }
+
+        @Override
+        public String toString() {
+            return "Response [responseStatus=" + responseStatus
+                    + ", responseBody=" + responseBody + "]";
+        }
+
+    }
 
 }
